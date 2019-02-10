@@ -14,7 +14,6 @@ RUN curl -s -L https://github.com/docker/compose/releases/latest | \
     chmod +x /usr/local/bin/docker-compose && \
     /usr/local/bin/docker-compose --version
 
-RUN apt-get update && apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash - \
     && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
@@ -24,3 +23,7 @@ RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash - \
 RUN apt-get update \
     && apt-get install -y nodejs yarn google-cloud-sdk kubectl python python-pip \
     && pip install awscli
+RUN docker --version
+
+ENV LOG=file
+ENTRYPOINT ["wrapdocker"]
