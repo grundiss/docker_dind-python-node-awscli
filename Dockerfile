@@ -14,7 +14,7 @@ RUN curl -s -L https://github.com/docker/compose/releases/latest | \
     chmod +x /usr/local/bin/docker-compose && \
     /usr/local/bin/docker-compose --version
 
-RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash - \
+RUN curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - \
     && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
     && export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
