@@ -1,29 +1,29 @@
-FROM jpetazzo/dind:latest
+FROM ubuntu:20.04
 
-# Install Docker from Docker Inc. repositories.
-RUN curl -sSL https://get.docker.com/ | sh && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install --only-upgrade -y docker-ce && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Let's start with some basic stuff.
+RUN apt-get update -qq && \
+    apt-get install -qqy apt-transport-https ca-certificates curl lxc iptables gnupg unzip dmsetup
 
-RUN curl -s -L https://github.com/docker/compose/releases/latest | \
-    egrep -o '/docker/compose/releases/download/[0-9.]*/docker-compose-Linux-x86_64' | \
-    wget --base=http://github.com/ -i - -O /usr/local/bin/docker-compose && \
-    chmod +x /usr/local/bin/docker-compose && \
-    /usr/local/bin/docker-compose --version
+RUN curl -sSL https://get.docker.com/ | sh
 
-RUN curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - \
-    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
-    && export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
-    && echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
-    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-RUN apt-get update \
-    && apt-get install -y nodejs yarn google-cloud-sdk kubectl python python-pip \
-    && pip install awscli
-RUN docker --version
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+
+RUN apt-get update && apt-get install -y docker-ce nodejs yarn google-cloud-sdk kubectl
+
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
+RUN curl https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+
+# Install the magic wrapper.
+ADD ./wrapdocker /usr/local/bin/wrapdocker
+RUN chmod +x /usr/local/bin/wrapdocker
 
 ENV LOG=file
-ENTRYPOINT ["wrapdocker"]
+
+# Define additional metadata for our image.
+VOLUME /var/lib/docker
+CMD ["wrapdocker"]
